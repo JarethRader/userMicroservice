@@ -3,7 +3,8 @@ import envConfig from './env';
 import {
   postUser,
   patchUser,
-  getUser,
+  listSelf,
+  findOther,
   deleteUser,
   loginUser,
   logoutUser,
@@ -110,11 +111,17 @@ app.patch(
   auth.checkSignIn,
   makeCallback(patchUser)
 );
-// get
+// get own info
 app.get(
   `${envConfig['API_ROOT']}/user/:id`,
   auth.checkSignIn,
-  makeCallback(getUser)
+  makeCallback(listSelf)
+);
+// get other users info
+app.get(
+  `${envConfig['API_ROOT']}/user/`,
+  auth.checkSignIn,
+  makeCallback(findOther)
 );
 // delete
 app.delete(

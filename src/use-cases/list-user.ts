@@ -1,10 +1,10 @@
 const buildListUser: BuildListUser = (userDb) => {
-  const getUser = async (id: string) => {
+  const listUser = async (id: string) => {
     const userInstance = await userDb();
 
     return await userInstance.findOneById(id);
   };
-  return getUser;
+  return listUser;
 };
 
 export default buildListUser;

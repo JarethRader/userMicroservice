@@ -8,6 +8,7 @@ const buildAuthMiddleware = (makeDb: () => Promise<UserDB>) => {
       next: express.NextFunction
     ) => {
       const db = await makeDb();
+      // @ts-ignore
       const { userID } = req!.session!;
       // Check for token
       if (!userID) {
@@ -26,6 +27,7 @@ const buildAuthMiddleware = (makeDb: () => Promise<UserDB>) => {
       res: express.Response,
       next: express.NextFunction
     ) => {
+      // @ts-ignore
       const { userID } = req!.session!;
       // Check for token
       if (!userID) {

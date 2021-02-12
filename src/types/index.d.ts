@@ -21,13 +21,13 @@ declare global {
 
   interface IMakeUser {
     [key: string]: any;
-    id: string;
-    username: string;
-    email: string;
+    id?: string;
+    username?: string;
+    email?: string;
     password?: string;
-    verified: boolean;
-    createdOn: number;
-    modifiedOn: number;
+    verified?: boolean;
+    createdOn?: number;
+    modifiedOn?: number;
   }
 
   interface IUserObject {
@@ -78,7 +78,6 @@ declare global {
     username: string;
     email: string;
     password: string;
-    totalGames: number;
     verified: boolean;
   }
 
@@ -112,6 +111,10 @@ declare global {
   type BuildListUser = (
     userDB: () => Promise<UserDB>
   ) => (id: string) => Promise<IUserModel | undefined>;
+
+  type BuildGetUser = (
+    userDB: () => Promise<UserDB>
+  ) => (email: string) => Promise<IUserModel | undefined>;
 
   type BuildRemoveUser = (
     userDB: () => Promise<UserDB>
@@ -163,8 +166,12 @@ declare global {
     removeUser: (id: string) => Promise<IUserModel | undefined>
   ) => (request: ExpressHttpRequest) => Promise<IController>;
 
-  type BuildGetUser = (
+  type BuildGetListUser = (
     listUser: (id: string) => Promise<IUserModel | undefined>
+  ) => (request: ExpressHttpRequest) => Promise<IController>;
+
+  type BuildGetFindUser = (
+    getUser: (email: string) => Promise<IUserModel | undefined>
   ) => (request: ExpressHttpRequest) => Promise<IController>;
 
   // Express callback

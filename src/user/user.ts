@@ -38,7 +38,7 @@ const buildMakeUser = (
     if (username.length < 2) {
       throw new Error('Username must be longer than 2 characters');
     }
-    if (!Email.isValidEmail(email)) {
+    if (!Email.isValidEmail(email as string)) {
       throw new Error('Must have a valid email address');
     }
     if (!password) {
@@ -51,7 +51,7 @@ const buildMakeUser = (
     return Object.freeze({
       getId: () => id,
       getUsername: () => username,
-      getEmail: () => Email.normalizeEmail(email),
+      getEmail: () => Email.normalizeEmail(email as string),
       getPassword: async () => await hashPassword(password),
       getCreatedOn: () => createdOn,
       getModifiedOn: () => modifiedOn,

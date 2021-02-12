@@ -1,6 +1,7 @@
 import buildAddUser from './add-user';
 import buildEditUser from './edit-user';
 import buildListUser from './list-user';
+import buildFindUser from './get-user';
 import buildRemoveUser from './remove-user';
 import buildAuthenticateCredentials from './authenticate-credentials';
 import makeDb from '../data-access';
@@ -30,6 +31,7 @@ const editValidate = makeEditValidate(makeDb, toObjectId);
 const addUser = buildAddUser(makeDb, userValidate);
 const editUser = buildEditUser(makeDb, editValidate);
 const listUser = buildListUser(makeDb);
+const findUser = buildFindUser(makeDb);
 const removeUser = buildRemoveUser(makeDb);
 const authenticateCredentials = buildAuthenticateCredentials(
   makeDb,
@@ -40,9 +42,17 @@ const userServices = Object.freeze({
   addUser,
   editUser,
   listUser,
+  findUser,
   removeUser,
   authenticateCredentials,
 });
 
 export default userServices;
-export { addUser, editUser, listUser, removeUser, authenticateCredentials };
+export {
+  addUser,
+  editUser,
+  listUser,
+  findUser,
+  removeUser,
+  authenticateCredentials,
+};
