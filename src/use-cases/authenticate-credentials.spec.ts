@@ -1,28 +1,32 @@
 // @ts-ignore
-import makeFakeUser from '../../__test__/user';
-import makeDb from '../data-access';
-import buildAuthenticateCredentials from './authenticate-credentials';
+import makeFakeUser from "../../__test__/user";
+// @ts-ignore
+import makeDB from "../../__test__/db";
+import User from "../db";
+import makeUserDB from "../data-access/user-db";
 
-const Authenticate = Object.freeze({
-  validatePassword: async (givenPassword: string, storedPassword: string) =>
-    givenPassword === storedPassword,
-});
+import buildAuthenticateCredentials from "./authenticate-credentials";
+import Password from "../Password";
 
-describe('Authenticate Credentials', () => {
-  it('Checks if passwords match', async () => {
-    const user = makeFakeUser({ password: 'password' });
-    const db = await makeDb();
+describe("Authenticate user password", () => {
+  const db = makeDB();
 
-    await db.insert(user);
+  beforeEach(async () => await db.dbConnect());
+  afterEach(async () => await db.dbDisconnect());
+
+  it("Authenticate Credentials accurately matches passwords", async () => {
+    const userDB = makeUserDB(User);
+    const hashed = await Password.hashPassword("Password");
+    const user = makeFakeUser({ password: hashed });
+
+    await userDB.insert(user);
 
     const authenticateCredentials = buildAuthenticateCredentials(
-      makeDb,
-      Authenticate
+      // @ts-ignore
+      userDB,
+      Password.validatePassword
     );
 
-    expect(await authenticateCredentials(user.email, 'password')).toBe(user.id);
-    expect(
-      await authenticateCredentials(user.email, 'notpassword')
-    ).toBeUndefined();
+    expect(await authenticateCredentials(user.email, "Password")).toBeTruthy();
   });
 });

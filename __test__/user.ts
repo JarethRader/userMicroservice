@@ -1,17 +1,12 @@
-import faker from 'faker';
-import Id from '../src/Id';
+import faker from "faker";
+import ObjectID from "bson-objectid";
 
 const makeFakeUser = ({ ...overrides }) => {
-  const password = faker.internet.password();
-
   const user = {
-    id: Id.makeId(),
+    _id: new ObjectID().toHexString(),
     username: faker.internet.userName(),
     email: faker.internet.email(),
-    password,
-    verified: false,
-    createdOn: Date.now(),
-    modifiedOn: Date.now(),
+    password: faker.internet.password(),
   };
 
   return {

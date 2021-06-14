@@ -1,28 +1,26 @@
-const buildDeleteUser: BuildDeleteUser = (removeUser) => {
-  const deleteUser = async (
-    request: ExpressHttpRequest
-  ): Promise<IController> => {
+const buildDeleteUser = (removeUser: TRemoveUser) => {
+  const deleteUser = async (request: ExpressHttpRequest) => {
     try {
-      const removedUser = await removeUser(request.params.id);
+      const user = await removeUser(request.params.id)
+        .then((updatedUser) => updatedUser)
+        .catch((err) => {
+          throw err;
+        });
 
       return {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         statusCode: 200,
-        body: { user: removedUser },
-        session: {
-          destroy: true,
-        },
       };
     } catch (err) {
       return {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         statusCode: 400,
         body: {
-          error: err.message as string,
+          error: err.message,
         },
       };
     }

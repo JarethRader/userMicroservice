@@ -1,29 +1,48 @@
-import makeUser from '../user';
+// TODO: Add type definitions
+import { IUserModel } from "../db";
+import makeUser from "../user";
 
-const buildEditUser: BuildEditUser = (userDb, validate) => {
-  const editUser = async (id: string, changeInfo: IEditUser) => {
-    const userInstance = await userDb();
+declare global {
+  type TBuildEditUser = (
+    userDB: Promise<TUserDB>,
+    validate: (user: TUser) => Promise<TUser>
+  ) => (id: string, updatedUserInfo: IUpdate) => Promise<IUserModel>;
 
-    const user = await userInstance.findOneById(id);
+  type TEditUser = (
+    id: string,
+    updatedUserInfo: IUpdate
+  ) => Promise<IUserModel>;
+}
 
-    const validated = await validate(changeInfo);
+const buildEditUser: TBuildEditUser = (
+  userDB: Promise<TUserDB>,
+  validate: (user: TUser) => Promise<TUser>
+) => {
+  const editUser: TEditUser = (id, updatedUserInfo) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const userInstance = await userDB;
+        const user = await userInstance
+          .findOneByID(id)
+          .then((user) => user)
+          .catch((err) => reject(err));
 
-    const changes: IMakeUser = makeUser({
-      ...(user && user.toObject()),
-      ...validated,
-    }).toObject();
+        const updatedInfo = {
+          ...user,
+          ...updatedUserInfo,
+        };
 
-    const filtered: IUserObject = Object.keys(changes)
-      .filter((key) => key != '_id')
-      .reduce((obj: any, key: any) => {
-        obj[key] = changes[key];
-        return obj;
-      }, {});
+        const updatedUser = await makeUser(updatedInfo as TUser);
+        // const validatedUser = await validate(updatedUser.toObject());
 
-    const updateduser =
-      userInstance && (await userInstance.update(id, filtered));
-
-    return updateduser;
+        userInstance
+          .update(id, updatedUser.toObject() as TUser)
+          .then((newUser) => resolve(newUser))
+          .catch((err: Error) => reject(err));
+      } catch (err) {
+        reject(err);
+      }
+    });
   };
   return editUser;
 };

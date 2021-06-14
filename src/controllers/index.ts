@@ -1,44 +1,30 @@
+import buildPostUser from "./post-user";
+import buildPatchUser from "./patch-user";
+import buildDeleteUser from "./delete-user";
+import buildGetUser from "./get-user";
+import buildLoginUser from "./login-user";
+
 import {
   addUser,
   editUser,
-  listUser,
-  findUser,
   removeUser,
+  findUser,
   authenticateCredentials,
-} from '../use-cases';
-import makePostUser from './post-user';
-import makePatchUser from './patch-user';
-import makeGetUser from './get-user';
-import makeFindUser from './find-user';
-import makeDeleteUser from './delete-user';
-import makeLoginUser from './login-user';
-import makeLogoutUser from './logout-user';
+} from "../use-cases";
 
-const postUser = makePostUser(addUser);
-const patchUser = makePatchUser(editUser);
-const listSelf = makeGetUser(listUser);
-const findOther = makeFindUser(findUser);
-const deleteUser = makeDeleteUser(removeUser);
-const loginUser = makeLoginUser(authenticateCredentials, listUser);
-const logoutUser = makeLogoutUser();
+const postUser = buildPostUser(addUser);
+const patchUser = buildPatchUser(editUser);
+const deleteUser = buildDeleteUser(removeUser);
+const getUser = buildGetUser(findUser);
+const loginUser = buildLoginUser(authenticateCredentials, findUser);
 
-const userController = {
+const userControllers = Object.freeze({
   postUser,
   patchUser,
-  listSelf,
-  findOther,
   deleteUser,
+  getUser,
   loginUser,
-  logoutUser,
-};
+});
 
-export default userController;
-export {
-  postUser,
-  patchUser,
-  listSelf,
-  findOther,
-  deleteUser,
-  loginUser,
-  logoutUser,
-};
+export default userControllers;
+export { postUser, patchUser, deleteUser, getUser, loginUser };

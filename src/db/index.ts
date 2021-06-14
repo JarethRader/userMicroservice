@@ -1,7 +1,19 @@
-// Definition for User document in MongoDB
-import { Schema, Model, model } from 'mongoose';
+// define mongoDB schema
+import { Schema, Model, Document, model } from "mongoose";
 
-// export interface IUserModel extends IUser, Document {}
+declare global {
+  type TUserModel = Model<IUserModel, {}, {}>;
+}
+
+interface IUser {
+  username: string;
+  email: string;
+  password: string;
+  // createdAt: string;
+  // updatedAt: string;
+}
+
+export interface IUserModel extends IUser, Document {}
 
 export const UserSchema = new Schema({
   username: {
@@ -11,7 +23,7 @@ export const UserSchema = new Schema({
   },
   email: {
     type: String,
-    required: true,
+    require: true,
     unique: true,
     trim: true,
   },
@@ -19,20 +31,16 @@ export const UserSchema = new Schema({
     type: String,
     required: true,
   },
-  verified: {
-    type: Boolean,
-    default: false,
-  },
   createdAt: {
     type: Date,
-    default: new Date(),
+    // default: new Date(),
   },
   updatedAt: {
     type: Date,
-    default: new Date(),
+    // default: new Date(),
   },
 });
 
-export const User: Model<IUserModel> = model<IUserModel>('User', UserSchema);
+export const User: Model<IUserModel> = model<IUserModel>("User", UserSchema);
 
 export default User;

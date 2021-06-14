@@ -1,28 +1,27 @@
 // @ts-ignore
-import getOutputData from '../../__test__/getUser';
+import makeFakeUser from "../../__test__/user";
 // @ts-ignore
-import makeFakeUser from '../../__test__/user';
-import makeDb from '../data-access';
-import makeAddUser from './add-user';
-import mongoose from 'mongoose';
+import makeDB from "../../__test__/db";
+import User from "../db";
+import makeUserDB from "../data-access/user-db";
+import buildAddUser from "./add-user";
 
-const validate: any = async (user: any) => {
-  return {
-    _id: new mongoose.mongo.ObjectId(user.getId()),
-    username: user.getUsername(),
-    email: user.getEmail(),
-    password: await user.getPassword(),
-    verified: user.getVerified(),
-    createdAt: user.getCreatedOn(),
-    updatedAt: user.getModifiedOn(),
-  };
-};
+const validate = async (user: TUser) => user;
 
-describe('add user', () => {
-  it('Makes a new User Object', async () => {
+describe("Add user", () => {
+  const db = makeDB();
+
+  beforeEach(async () => await db.dbConnect());
+  afterEach(async () => await db.dbDisconnect());
+
+  it("Makes a new user object to insert", async () => {
+    const userDB = makeUserDB(User);
     const user = makeFakeUser({});
-    const addUser = makeAddUser(makeDb, validate);
-    const inserted = await addUser(user);
-    expect(getOutputData(inserted)).toEqual(getOutputData(user));
+    // @ts-ignore
+    const addUser = buildAddUser(userDB, validate);
+    await addUser(user);
+
+    const foundUser = await userDB.findOneByID(user._id);
+    expect(foundUser.id).toEqual(user._id);
   });
 });

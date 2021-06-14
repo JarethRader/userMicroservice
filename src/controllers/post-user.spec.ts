@@ -1,50 +1,33 @@
 // @ts-ignore
-import getOutputData from '../../__test__/getUser';
-// @ts-ignore
-import { User } from '../../__test__/db';
-// @ts-ignore
-import makeFakeUser from '../../__test__/user';
-import makePostUser from './post-user';
+import makeFakeUser from "../../__test__/user";
+import buildPostUser from "./post-user";
 
-const addUser = async (user: IMakeUser) => {
-  const newUser = new User({
-    _id: user.user.id,
-    username: user.user.username,
-    email: user.user.email,
-    password: user.user.password,
-    verified: user.user.verified,
-    createdAt: user.user.createdOn,
-    updatedAt: user.user.modifiedOn,
-  });
-  return newUser;
-};
+const addUser = async (user: TUser) => user;
 
-describe('Post User Controller', () => {
-  it('Posts a new user', async () => {
-    const user: IMakeUser = makeFakeUser({});
-    const postUser = makePostUser(addUser);
+describe("Post User Controller", () => {
+  it("Posts a new user", async () => {
+    const user = makeFakeUser({});
+    // @ts-ignore
+    const postUser = buildPostUser(addUser);
 
-    const request: ExpressHttpRequest = {
+    const request = {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: { user },
     };
 
-    const expected: IController = {
+    const expected = {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       statusCode: 201,
       body: { user: request.body.user },
     };
 
+    // @ts-ignore
     const actual = await postUser(request);
 
-    expect(actual.headers).toEqual(expected.headers);
-    expect(actual.statusCode).toEqual(expected.statusCode);
-    expect(getOutputData((actual as IControllerResponse).body.user)).toEqual(
-      getOutputData(expected.body.user)
-    );
+    expect(actual).toEqual(expected);
   });
 });

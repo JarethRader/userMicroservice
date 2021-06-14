@@ -1,0 +1,2 @@
+docker command to start mongo container
+docker run --name chess-mongo -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=password -e MONGO_INITDB_DATABASE=Users -d mongo

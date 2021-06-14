@@ -1,23 +1,31 @@
 // @ts-ignore
-import makeFakeUser from '../../__test__/user';
-import buildEditUser from './edit-user';
-import makeDb from '../data-access';
-import User from '../db';
+import makeFakeUser from "../../__test__/user";
+// @ts-ignore
+import makeDB from "../../__test__/db";
+import User from "../db";
+import buildEditUser from "./edit-user";
 
-const validate: any = async (user: any) => user;
+import makeUserDB from "../data-access/user-db";
 
-describe('Edit user', () => {
-  it('updates a user', async () => {
-    const newUser = makeFakeUser({ username: 'jareth' });
+const validate = async (user: TUser) => user;
 
-    const userInstance = await makeDb();
-    await userInstance.insert(newUser);
+describe("Edit user", () => {
+  const db = makeDB();
 
-    const editUser = buildEditUser(makeDb, validate);
-    const changed = await editUser(newUser.id, {
-      username: 'jarp',
-    });
+  beforeEach(async () => await db.dbConnect());
+  afterEach(async () => await db.dbDisconnect());
 
-    expect(changed?.username).toBe('jarp');
+  it("Makes a new user object to insert", async () => {
+    const userDB = makeUserDB(User);
+    const user = makeFakeUser({});
+    await userDB.insert(user);
+
+    const edit = makeFakeUser({ ...user, username: "jareth" });
+    // @ts-ignore
+    const editUser = buildEditUser(userDB, validate);
+    await editUser(edit._id, edit);
+
+    const foundUser = await userDB.findOneByID(edit._id);
+    expect(foundUser.username).toEqual("jareth");
   });
 });

@@ -1,5 +1,4 @@
 {
-  "testEnvironment": "node",
   "testRegex": "((\\.|/*.)(spec))\\.(ts|js)?$",
   "transform": {
     "^.+\\.(ts|tsx)$": "ts-jest"
@@ -9,7 +8,8 @@
   "moduleFileExtensions": ["ts", "js"],
   "globals": {
     "ts-jest": {
-      "tsConfig": "tsconfig.json"
+      "tsconfig": "tsconfig.json"
     }
-  }
+  },
+  "preset": "@shelf/jest-mongodb"
 }

@@ -1,58 +1,35 @@
-import buildAddUser from './add-user';
-import buildEditUser from './edit-user';
-import buildListUser from './list-user';
-import buildFindUser from './get-user';
-import buildRemoveUser from './remove-user';
-import buildAuthenticateCredentials from './authenticate-credentials';
-import makeDb from '../data-access';
-import makeUserValidate from './validateNew';
-import makeEditValidate from './validateChanges';
-import mongoose from 'mongoose';
+import buildAddUser from "./add-user";
+import buildEditUser from "./edit-user";
+import buildRemoveUser from "./remove-user";
+import buildFindUser from "./find-user";
 
-import argon2 from 'argon2';
+import buildAuthenticateCredentials from "./authenticate-credentials";
+import makeValidate from "./validate";
 
-const toObjectId = (id: string) => new mongoose.mongo.ObjectId(id);
-const Authenticate = Object.freeze({
-  validatePassword: (givenPassword: string, storedPassword: string) => {
-    return argon2
-      .verify(storedPassword, givenPassword)
-      .then((verified: boolean) => {
-        return verified;
-      })
-      .catch((err) => {
-        throw err;
-      });
-  },
-});
+import buildMakeDB from "../data-access";
 
-const userValidate = makeUserValidate(makeDb, toObjectId);
-const editValidate = makeEditValidate(makeDb, toObjectId);
+import Password from "../Password";
 
-const addUser = buildAddUser(makeDb, userValidate);
-const editUser = buildEditUser(makeDb, editValidate);
-const listUser = buildListUser(makeDb);
-const findUser = buildFindUser(makeDb);
-const removeUser = buildRemoveUser(makeDb);
+const userDB = buildMakeDB();
+
+const validate = makeValidate(userDB);
+
+const addUser = buildAddUser(userDB, validate);
+const editUser = buildEditUser(userDB, validate);
+const removeUser = buildRemoveUser(userDB);
+const findUser = buildFindUser(userDB);
 const authenticateCredentials = buildAuthenticateCredentials(
-  makeDb,
-  Authenticate
+  userDB,
+  Password.validatePassword
 );
 
 const userServices = Object.freeze({
   addUser,
   editUser,
-  listUser,
-  findUser,
   removeUser,
+  findUser,
   authenticateCredentials,
 });
 
 export default userServices;
-export {
-  addUser,
-  editUser,
-  listUser,
-  findUser,
-  removeUser,
-  authenticateCredentials,
-};
+export { addUser, editUser, removeUser, findUser, authenticateCredentials };

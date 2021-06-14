@@ -1,19 +1,23 @@
-const buildGetUser: BuildGetListUser = (listUser) => {
-  const GetUser = async (request: ExpressHttpRequest): Promise<IController> => {
+const buildGetUser = (findUser: TFindUser) => {
+  const getUser = async (request: ExpressHttpRequest) => {
     try {
-      const listedUser = await listUser(request.params.id);
+      const user = await findUser(request.params.id)
+        .then((updatedUser) => updatedUser)
+        .catch((err) => {
+          throw err;
+        });
 
       return {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         statusCode: 200,
-        body: { user: listedUser },
+        body: user,
       };
     } catch (err) {
       return {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         statusCode: 400,
         body: {
@@ -22,7 +26,7 @@ const buildGetUser: BuildGetListUser = (listUser) => {
       };
     }
   };
-  return GetUser;
+  return getUser;
 };
 
 export default buildGetUser;

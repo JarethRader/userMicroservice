@@ -1,64 +1,85 @@
-const makeUserDb: MakeDB = (userSchema) =>
-  Object.freeze({
-    insert: async (userInfo: any) => {
-      const newUser: IUserModel = new userSchema({
-        _id: userInfo.id || userInfo._id,
-        username: userInfo.username,
-        email: userInfo.email,
-        password: userInfo.password,
-        verified: userInfo.verified,
-        createdAt: userInfo.createdOn || userInfo.createdAt,
-        updatedAt: userInfo.modifiedOn || userInfo.updatedAt,
-      });
-      return await newUser.save().then((user) => {
-        return user && user;
-      });
-    },
-    findOneByEmail: async (email: string) => {
-      return new Promise<IUserModel | undefined>(async (resolve, reject) => {
-        await userSchema
-          .findOne({ email })
-          .then((user: IUserModel) => {
-            if (!user) {
-              resolve(undefined);
-            }
+import { IUserModel } from "../db";
+
+declare global {
+  type TUserDB = Readonly<{
+    insert: (newUserInfo: TUser) => Promise<IUserModel>;
+    update: (id: string, updateUserInfo: TUpdate) => Promise<IUserModel>;
+    remove: (id: string) => Promise<boolean>;
+    findOneByEmail: (email: string) => Promise<IUserModel>;
+    findOneByID: (id: string) => Promise<IUserModel>;
+  }>;
+
+  type TMakeUserDB = (userSchema: TUserModel) => TUserDB;
+}
+
+// Define User DB Methods
+const makeUserDB: TMakeUserDB = (userSchema) => {
+  return Object.freeze({
+    insert: (newUserInfo) => {
+      return new Promise(async (resolve, reject) => {
+        const newUser = new userSchema(newUserInfo);
+        await newUser
+          .save()
+          .then((user) => {
+            if (!user) reject("Error saving new user");
             resolve(user);
           })
-          .catch((err: any) => {
-            reject(err);
+          .catch((err) => {
+            console.error(err);
+            reject("Failed to create new user");
           });
       });
     },
-    findOneById: async (id: string) => {
-      return await userSchema
-        .findById(id)
-        .then((user: IUserModel) => {
-          if (!user) {
-            return undefined;
-          }
-          return user;
-        })
-        .catch((err: any) => {
-          throw err;
-        });
+    update: (id, updateUserInfo) => {
+      return new Promise(async (resolve, reject) => {
+        await userSchema
+          .findOneAndUpdate({ _id: id }, { ...updateUserInfo }, { new: true })
+          .then((user) => {
+            if (!user) reject("Error updating user");
+            resolve(user!);
+          })
+          .catch((err) => reject("Failed to update user"));
+      });
     },
-    remove: async (id: string) => {
-      return await userSchema
-        .findOneAndDelete({ _id: id })
-        .catch((err: any) => {
-          throw err;
-        });
+    remove: (id) => {
+      return new Promise(async (resolve, reject) => {
+        await userSchema
+          .findOneAndDelete({ _id: id })
+          .then((user) => {
+            if (!user) reject("Error removing user");
+            resolve(true);
+          })
+          .catch((err) => reject("Failed to remove user"));
+      });
     },
-    update: async (id: string, updatedInfo: IEditUser) => {
-      return await userSchema
-        .findOneAndUpdate({ _id: id }, { ...updatedInfo }, { new: true })
-        .then((user: IUserModel) => {
-          if (!user) {
-            throw new Error('Failed to updated User');
-          }
-          return user;
-        });
+    findOneByEmail: (email) => {
+      return new Promise(async (resolve, reject) => {
+        await userSchema
+          .findOne({ email })
+          .then((user) => {
+            if (!user) reject("Error finding user");
+            resolve(user!);
+          })
+          .catch((err) => reject("Failed to find user"));
+      });
+    },
+    findOneByID: (id) => {
+      return new Promise(async (resolve, reject) => {
+        await userSchema
+          .findById(id)
+          .then((user) => {
+            if (!user) reject("Error finding user");
+            const formatUser = {
+              ...user!.toObject(),
+              _id: (user?._id).toString(),
+            };
+            // @ts-ignore
+            resolve(formatUser!);
+          })
+          .catch((err) => reject("Failed to find user"));
+      });
     },
   });
+};
 
-export default makeUserDb;
+export default makeUserDB;

@@ -1,52 +1,39 @@
-const buildLoginUser = (
-  authenticate: (
-    email: string,
-    password: string
-  ) => Promise<string | undefined>,
-  listUser: (id: string) => Promise<IUserModel | undefined>
-) => {
-  const LoginUser = async (
-    request: ExpressHttpRequest
-  ): Promise<IController> => {
+declare global {
+  type TBuildLoginUser = (
+    authenticate: TAuthenticateCredentials,
+    findUser: TFindUser
+  ) => (request: ExpressHttpRequest) => Promise<IController>;
+}
+
+const buildLoginUser: TBuildLoginUser = (authenticate, findUser) => {
+  const loginUser = async (request: ExpressHttpRequest) => {
     try {
-      // validPassword will be the userID if passwords match, and undefined if passwords don't match
-      const validPassword = await authenticate(
-        request.body.email,
-        request.body.password
-      );
-      if (!validPassword) {
-        throw new Error('Invalid password');
-      }
-      const user =
-        validPassword !== undefined ? await listUser(validPassword) : undefined;
+      const user = await authenticate(request.body.email, request.body.password)
+        .then(async (userID) => await findUser(userID))
+        .catch((err) => {
+          throw err;
+        });
 
       return {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        statusCode: 201,
-        body: { user },
-        session: {
-          userID: validPassword,
-        },
+        statusCode: 200,
+        body: user,
       };
     } catch (err) {
       return {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         statusCode: 400,
         body: {
           error: err.message,
         },
-        session: {
-          destroy: true,
-        },
       };
     }
   };
-
-  return LoginUser;
+  return loginUser;
 };
 
 export default buildLoginUser;

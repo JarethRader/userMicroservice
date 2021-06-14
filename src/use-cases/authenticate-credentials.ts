@@ -1,29 +1,44 @@
-const buildAuthenticateCredentials = (
-  userDb: () => Promise<UserDB>,
-  Authenticate: {
-    validatePassword(
-      givenPassword: string,
-      storedPassword: string
-    ): Promise<boolean>;
-  }
-) => {
-  const authenticateCredentials = async (email: string, password: string) => {
-    return new Promise<string | undefined>(async (resolve, reject) => {
-      const db = await userDb();
-      const user = await db.findOneByEmail(email);
-      if (!user) {
-        throw new Error('User not found');
-      }
+declare global {
+  type TBuildAuthenticateCredentials = (
+    userDB: Promise<TUserDB>,
+    verifyPassword: (hased: string, plain: string) => Promise<boolean>
+  ) => TAuthenticateCredentials;
 
-      const isValid = await Authenticate.validatePassword(
-        password,
-        user.password
-      );
-      isValid && resolve(user.id);
-      resolve(undefined);
+  type TAuthenticateCredentials = (
+    email: string,
+    password: string
+  ) => Promise<string>;
+}
+
+const buildAuthenticateCredentials: TBuildAuthenticateCredentials = (
+  userDB,
+  verifyPassword
+) => {
+  const authenticateCredentials: TAuthenticateCredentials = (
+    email,
+    password
+  ) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const userInstance = await userDB;
+
+        const user = await userInstance
+          .findOneByEmail(email)
+          .then((user) => user)
+          .catch((err) => reject(err));
+
+        // @ts-ignore
+        await verifyPassword(user.password, password)
+          .then((success) => {
+            success && user && resolve(user._id);
+            reject("Password was incorrect");
+          })
+          .catch((err) => reject("Failed to authentiate user"));
+      } catch (err) {
+        reject(err);
+      }
     });
   };
-
   return authenticateCredentials;
 };
 

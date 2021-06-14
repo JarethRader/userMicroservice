@@ -1,23 +1,23 @@
-const buildPostUser: BuildPostUser = (addUser) => {
-  const postUser = async (
-    request: ExpressHttpRequest
-  ): Promise<IController> => {
+const buildPostUser = (addUser: TAddUser) => {
+  const postUser = async (request: ExpressHttpRequest) => {
     try {
-      const newUser = await addUser({ ...request.body });
+      const user = await addUser({ ...request.body })
+        .then((newUser) => newUser)
+        .catch((err) => {
+          throw err;
+        });
+
       return {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         statusCode: 201,
-        body: { user: newUser },
-        session: {
-          userID: newUser?._id,
-        },
+        body: user,
       };
     } catch (err) {
       return {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         statusCode: 400,
         body: {
@@ -26,7 +26,6 @@ const buildPostUser: BuildPostUser = (addUser) => {
       };
     }
   };
-
   return postUser;
 };
 

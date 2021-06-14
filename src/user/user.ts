@@ -1,74 +1,84 @@
-/**
- * @Author Jareth Rader <jarethrader@gmail.com>
- * @Desc makes a user object
- *
- * @param Id
- * @param Email
- * @param hashPassword
- */
+declare global {
+  interface IUpdate {
+    _id?: string;
+    username?: string;
+    email?: string;
+    password?: string;
+    createdAt?: number;
+    updatedAt?: number;
+  }
+  type TUpdate = IUpdate;
+
+  interface IMakeUser extends IUpdate {
+    _id: string;
+    username: string;
+    email: string;
+  }
+  type TUser = IMakeUser;
+
+  type TMakeUser = Readonly<{
+    getId: () => string;
+    getUsername: () => string;
+    getEmail: () => string;
+    getPassword: () => string;
+    toObject: () => {
+      _id: string;
+      username: string;
+      email: string;
+      password: string;
+      createdAt: number;
+      updatedAt: number;
+    };
+  }>;
+}
 
 const buildMakeUser = (
   Id: {
-    makeId: () => string;
+    makeID: () => string;
     isValidId: (id: string) => boolean;
   },
   Email: {
     normalizeEmail: (email: string) => string;
     isValidEmail: (email: string) => boolean;
   },
-  hashPassword: (password: string) => Promise<string>
+  Password: {
+    hashPassword: (password: string) => Promise<string>;
+  }
 ) => {
-  const makeUser: MakeUser = ({
-    id = Id.makeId(),
+  const makeUser = async ({
+    _id = Id.makeID(),
     username,
     email,
     password,
-    verified = false,
-    createdOn = Date.now(),
-    modifiedOn = Date.now(),
-  }) => {
-    // TODO add validations
-    if (!Id.isValidId(id)) {
-      throw new Error('Must have a valid id');
-    }
+    createdAt = Date.now(),
+    updatedAt = Date.now(),
+  }: TUser) => {
+    return new Promise<TMakeUser>(async (resolve, reject) => {
+      // Validate data
+      if (!Id.isValidId(_id)) reject("Must have a valid id");
+      if (!username) reject("Must have a username");
+      if (!Email.isValidEmail(email)) reject("Must have a valid email");
 
-    if (!username) {
-      throw new Error('Must have a username');
-    }
-    if (username.length < 2) {
-      throw new Error('Username must be longer than 2 characters');
-    }
-    if (!Email.isValidEmail(email as string)) {
-      throw new Error('Must have a valid email address');
-    }
-    if (!password) {
-      throw new Error('Must have a password');
-    }
-    if (password.length < 8) {
-      throw new Error('Password must be longer than 8 charcters');
-    }
+      const hashed = await Password.hashPassword(password!).then(
+        (password) => password
+      );
 
-    return Object.freeze({
-      getId: () => id,
-      getUsername: () => username,
-      getEmail: () => Email.normalizeEmail(email as string),
-      getPassword: async () => await hashPassword(password),
-      getCreatedOn: () => createdOn,
-      getModifiedOn: () => modifiedOn,
-      getVerified: () => verified,
-      verify: () => {
-        verified = true;
-      },
-      toObject: () => {
-        return {
-          id,
-          username,
-          email,
-          createdOn,
-          modifiedOn,
-          verified,
-        };
-      },
+      resolve(
+        Object.freeze({
+          getId: () => _id,
+          getUsername: () => username,
+          getEmail: () => Email.normalizeEmail(email),
+          getPassword: () => hashed,
+          toObject: () => ({
+            _id,
+            username,
+            email,
+            password: hashed,
+            createdAt,
+            updatedAt,
+          }),
+        })
+      );
     });
   };
 
